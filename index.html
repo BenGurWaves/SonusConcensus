@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonus Concensus | Where Frequencies Align</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --midnight: #0f172a;
+            --midnight-dark: #0a0f1f;
+            --midnight-light: #1e293b;
+            --charcoal: #00000080;
+            --ivory: #f5f5f5;
+            --gold: #d4af37;
+            --gold-transparent: rgba(212, 175, 55, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--midnight);
+            color: var(--ivory);
+            overflow-x: hidden;
+            line-height: 1.6;
+            font-weight: 300;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Loader Styles */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-text {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            color: var(--ivory);
+            letter-spacing: 0.05em;
+            position: relative;
+            min-height: 1.2em;
+        }
+
+        .loader-text::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            background-color: var(--gold);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            background-color: var(--charcoal);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--ivory);
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-link {
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--ivory);
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: var(--transition);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--gold);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(30, 41, 59, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(15, 23, 42, 0.6) 0%, transparent 50%),
+                linear-gradient(to bottom, var(--midnight-dark), var(--midnight));
+            z-index: -2;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(212, 175, 55, 0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+            z-index: -1;
+            animation: subtleMove 20s linear infinite;
+        }
+
+        @keyframes subtleMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(4rem, 15vw, 12rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 1.5rem;
+            color: var(--ivory);
+            text-shadow: 
+                0 0 20px rgba(212, 175, 55, 0.2),
+                0 0 40px rgba(212, 175, 55, 0.1);
+            line-height: 1;
+        }
+
+        .hero-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            font-weight: 300;
+            font-style: italic;
+            letter-spacing: 0.1em;
+            color: rgba(245, 245, 245, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Content Sections */
+        .section {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.03em;
+        }
+
+        .section-description {
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            color: rgba(245, 245, 245, 0.8);
+            font-weight: 300;
+        }
+
+        .section-button {
+            display: inline-block;
+            padding: 1.2rem 3rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            border-radius: 0;
+            background: transparent;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            text-transform: uppercase;
+        }
+
+        .section-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--gold-transparent), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .section-button:hover {
+            color: var(--midnight);
+            background-color: var(--gold);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .section-button:hover::before {
+            left: 100%;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            color: rgba(245, 245, 245, 0.7);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--gold);
+        }
+
+        .copyright {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            color: rgba(245, 245, 245, 0.5);
+            letter-spacing: 0.05em;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 1.2rem;
+                justify-content: center;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: clamp(3.5rem, 12vw, 8rem);
+            }
+
+            .section {
+                padding: 3rem 1.5rem;
+            }
+
+            .section-button {
+                padding: 1rem 2.5rem;
+                font-size: 1rem;
+            }
+
+            .footer-links {
+                gap: 1.5rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .hero-title {
+                font-size: clamp(6rem, 12vw, 10rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-text" id="typed-text"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <a href="#" class="header-title">Sonus Concensus</a>
+        <nav>
+            <a href="#" class="nav-link">Home</a>
+            <a href="videos.html" class="nav-link">Videos</a>
+            <a href="music.html" class="nav-link">Music</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1 class="hero-title">Sonus Concensus</h1>
+        <p class="hero-subtitle">Where Frequencies Align</p>
+    </section>
+
+    <!-- Watch Now Section -->
+    <section class="section">
+        <h2 class="section-title">Watch Now</h2>
+        <p class="section-description">Cinematic instrumentals and arrangements that transport you to another dimension.</p>
+        <a href="videos.html" class="section-button">Explore Videos</a>
+    </section>
+
+    <!-- Listen Section -->
+    <section class="section">
+        <h2 class="section-title">Listen</h2>
+        <p class="section-description">Pure audio experience designed for deep listening and sonic immersion.</p>
+        <a href="music.html" class="section-button">Discover Music</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#" class="footer-link">Home</a>
+            <a href="videos.html" class="footer-link">Videos</a>
+            <a href="music.html" class="footer-link">Music</a>
+        </div>
+        <p class="copyright">© Sonus Concensus 2026™</p>
+    </footer>
+
+    <script>
+        // Typing Effect for Loader
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('loader');
+            const typedText = document.getElementById('typed-text');
+            const text = "Sonus Concensus";
+            const typingSpeed = 150;
+            const maxLoaderTime = 6000;
+
+            let charIndex = 0;
+            let startTime = Date.now();
+
+            function typeChar() {
+                if (charIndex < text.length) {
+                    typedText.textContent += text.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeChar, typingSpeed);
+                } else {
+                    // Ensure loader stays for at least the total typing duration
+                    const elapsed = Date.now() - startTime;
+                    const remaining = Math.max(0, maxLoaderTime - elapsed);
+                    
+                    // Add cursor after typing is complete
+                    const cursor = document.createElement('span');
+                    cursor.className = 'cursor';
+                    typedText.appendChild(cursor);
+                    
+                    setTimeout(() => {
+                        loader.style.opacity = '0';
+                        loader.style.visibility = 'hidden';
+                        document.body.style.overflow = 'auto';
+                    }, remaining);
+                }
+            }
+
+            // Start typing effect
+            setTimeout(() => {
+                typeChar();
+            }, 300);
+
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('sw.js')
+                        .then(registration => {
+                            console.log('ServiceWorker registration successful');
+                        })
+                        .catch(err => {
+                            console.log('ServiceWorker registration failed: ', err);
+                        });
+                });
+            }
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
