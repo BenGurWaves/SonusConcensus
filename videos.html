@@ -364,12 +364,6 @@
                     videoId = video.video_id;
                 }
                 
-                // Skip if videoId is empty or invalid
-                if (!videoId || videoId.trim() === '') {
-                    console.warn('Skipping video with empty ID:', video.title);
-                    return;
-                }
-                
                 // Create card
                 const card = document.createElement('div');
                 card.className = 'video-card';
