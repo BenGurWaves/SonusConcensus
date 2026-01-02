@@ -395,7 +395,8 @@
         // Initialize Supabase
         const supabaseUrl = 'https://simlltekbhaljyuxpyrs.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpbWxsdGVrYmhhbGp5dXhweXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTE4OTgsImV4cCI6MjA3NzE2Nzg5OH0.QowZXsw9nHjtIC-U1q_lJyc47Mi07mNYG8Skitq3QTQ';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // Supabase client (renamed to avoid global shadow error)
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
         
         // Audio Player State
         let player = {
@@ -435,7 +436,7 @@
         
         // Load tracks
         async function loadSongs() {
-            const { data: songs, error } = await supabase
+            const { data: songs, error } = await supabaseClient
                 .from('sonus_songs')
                 .select('*')
                 .order('created_at', { ascending: false });
