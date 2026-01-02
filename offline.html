@@ -1,0 +1,121 @@
+<!-- offline.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline | Sonus Concensus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; background: #000; color: #fff; font-family: 'Inter', sans-serif; font-weight: 300; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: normal; }
+        
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .offline-icon {
+            width: 120px;
+            height: 120px;
+            border: 2px solid #b59f3b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            font-size: 3rem;
+            color: #b59f3b;
+        }
+        
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+        
+        p {
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            color: #ccc;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            border: 1px solid #b59f3b;
+            color: #b59f3b;
+            text-decoration: none;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            transition: all 0.4s ease;
+            background: transparent;
+        }
+        
+        .btn:hover {
+            background: rgba(181, 159, 59, 0.1);
+            box-shadow: 0 0 20px rgba(181, 159, 59, 0.2);
+        }
+        
+        .btn-primary {
+            background: rgba(181, 159, 59, 0.2);
+            border-width: 2px;
+        }
+        
+        footer {
+            position: absolute;
+            bottom: 2rem;
+            width: 100%;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="offline-icon">♪</div>
+        <h1>Connection Interrupted</h1>
+        <p>The harmonic frequencies of Sonus Concensus require an internet connection. Please check your network and try again.</p>
+        <div class="actions">
+            <a href="/" class="btn btn-primary">Return Home</a>
+            <button onclick="location.reload()" class="btn">Retry Connection</button>
+        </div>
+        <footer>
+            © Sonus Concensus 2026™
+        </footer>
+    </div>
+    
+    <script>
+        // Check connection status
+        window.addEventListener('online', () => {
+            // Redirect to home when connection is restored
+            window.location.href = '/';
+        });
+        
+        // Try to reload every 30 seconds
+        setInterval(() => {
+            if (navigator.onLine) {
+                window.location.href = '/';
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
