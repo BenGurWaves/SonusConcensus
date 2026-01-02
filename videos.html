@@ -92,11 +92,16 @@
             width: 100%;
             aspect-ratio: 16/9;
             background: #111;
-            background-size: cover;
-            background-position: center;
             margin-bottom: 1rem;
             transition: all 0.4s ease;
             position: relative;
+            overflow: hidden;
+        }
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
         .thumbnail::after {
             content: '';
@@ -219,6 +224,22 @@
             background: rgba(181, 159, 59, 0.1);
         }
         
+        /* Share Button */
+        .share-btn {
+            background: none;
+            border: 1px solid #b59f3b;
+            color: #b59f3b;
+            padding: 0.8rem 2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            transition: all 0.4s;
+            margin-left: 1rem;
+        }
+        .share-btn:hover {
+            background: rgba(181, 159, 59, 0.1);
+        }
+        
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -288,6 +309,7 @@
             .modal-actions button {
                 width: 100%;
                 max-width: 300px;
+                margin-left: 0;
             }
         }
     </style>
@@ -318,7 +340,7 @@
             </div>
             <div class="modal-actions">
                 <a id="ytLink" target="_blank">Watch on YouTube</a>
-                <button class="share-btn">Share</button>
+                <button class="share-btn" id="shareBtn">Share</button>
             </div>
         </div>
     </div>
@@ -344,7 +366,7 @@
         const closeModal = document.getElementById('closeModal');
         const ytFrame = document.getElementById('ytFrame');
         const ytLink = document.getElementById('ytLink');
-        const shareBtn = document.querySelector('.share-btn');
+        const shareBtn = document.getElementById('shareBtn');
         
         // Global variables for current video
         let currentVideoId = '';
@@ -456,13 +478,21 @@
                     console.warn(`Skipping video "${video.title || 'Untitled'}" with invalid youtube_url: "${video.youtube_url}"`);
                     return; // or continue;
                 }
-                console.log(`Extracted ID ${videoId} for "${video.title}"`);
                 
-                // Determine thumbnail URL
-                const customThumb = video.thumbnail_url && video.thumbnail_url.trim() !== '' ? video.thumbnail_url : '';
-                const ytMaxRes = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-                const ytHq = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                const thumbUrl = customThumb || ytMaxRes;
+                // Determine thumbnail URLs
+                let primaryUrl, fallbackUrl;
+                if (video.thumbnail_url && video.thumbnail_url.trim() !== '') {
+                    primaryUrl = video.thumbnail_url.trim();
+                    fallbackUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                } else {
+                    primaryUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                    fallbackUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                }
+                
+                // Base64 placeholder for ultimate fallback
+                const placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDE2IDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjkiIGZpbGw9IiMwMDAiLz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjE2IiB5Mj0iOSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIHN0b3AtY29sb3I9IiNiNTlmM2IiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4NzcyMjkiLz48L2xpbmVhckdyYWRpZW50PjxyZWN0IHdpZHRoPSIxNiIgaGVpZ2h0PSI5IiBmaWxsPSJ1cmwoI2cpIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==';
+                
+                console.log(`Extracted ID ${videoId} for "${video.title}", thumb: ${primaryUrl}`);
                 
                 // Create card
                 const card = document.createElement('div');
@@ -470,11 +500,14 @@
                 card.dataset.videoId = videoId;
                 card.dataset.title = video.title;
                 card.dataset.description = video.description || '';
-                card.dataset.thumb = thumbUrl;
+                card.dataset.thumb = primaryUrl;
                 card.dataset.rowId = video.id;
                 
                 card.innerHTML = `
                     <div class="thumbnail">
+                        <img src="${primaryUrl}" alt="${video.title}" loading="lazy" 
+                             onerror="this.onerror=null; this.src='${fallbackUrl}';"
+                             onerror.capture="this.onerror=null; this.src='${placeholder}';">
                         <div class="play-icon"></div>
                     </div>
                     <h3>${video.title}</h3>
@@ -482,27 +515,20 @@
                     <p class="views">${video.view_count > 0 ? `${video.view_count} views` : ''}</p>
                 `;
                 
-                // Thumbnail loading with fallback
-                const thumb = card.querySelector('.thumbnail');
-                
-                // Set initial background
-                thumb.style.backgroundImage = `url(${thumbUrl})`;
-                
-                // If using YouTube thumbnail, test maxres -> fallback to hq
-                if (!customThumb) {
-                    const imgTest = new Image();
-                    imgTest.src = ytMaxRes;
-                    imgTest.onload = () => {
-                        // Keep maxres
-                    };
-                    imgTest.onerror = () => {
-                        thumb.style.backgroundImage = `url(${ytHq})`;
-                        card.dataset.thumb = ytHq;
-                    };
-                }
+                // Add error handler for the fallback image as well
+                const img = card.querySelector('img');
+                img.addEventListener('error', function() {
+                    if (this.src !== fallbackUrl && this.src !== placeholder) {
+                        this.src = fallbackUrl;
+                    } else if (this.src === fallbackUrl) {
+                        this.src = placeholder;
+                    } else {
+                        this.style.backgroundColor = '#111';
+                    }
+                });
                 
                 card.addEventListener('click', () => {
-                    openModal(videoId, video.title, video.description || '', thumbUrl);
+                    openModal(videoId, video.title, video.description || '', primaryUrl);
                 });
                 
                 videosGrid.appendChild(card);
@@ -567,7 +593,7 @@
             if (navigator.share) {
                 navigator.share({
                     title: currentVideoTitle,
-                    text: 'Watch this cinematic piece on Sonus Concensus',
+                    text: 'Watch this cinematic piece from Sonus Concensus',
                     url: shareUrl
                 }).catch(err => {
                     console.log('Share cancelled:', err);
@@ -576,7 +602,7 @@
                 // Fallback: copy YouTube link to clipboard
                 navigator.clipboard.writeText(youtubeUrl)
                     .then(() => {
-                        alert('YouTube link copied to clipboard');
+                        alert('Direct YouTube link copied to clipboard');
                     })
                     .catch(err => {
                         console.error('Failed to copy:', err);
