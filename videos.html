@@ -350,16 +350,32 @@
         let currentVideoId = '';
         let currentVideoTitle = '';
         
-        // YouTube ID extractor function
+        // YouTube ID extractor function - ULTRA ROBUST VERSION
         function getYouTubeID(url) {
-            if (!url) return '';
-            try {
-                const u = new URL(url.trim());
-                if (u.hostname === 'youtu.be') return u.pathname.slice(1);
-                if (u.searchParams.has('v')) return u.searchParams.get('v');
-            } catch {}
-            // Fallback if just raw ID pasted
-            return url.trim();
+          if (!url || typeof url !== 'string') return '';
+          const trimmed = url.trim();
+
+          // If it's exactly 11 chars and valid ID format
+          if (trimmed.length === 11 && /^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+            return trimmed;
+          }
+
+          // Robust regex to catch ID from any common format
+          const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/)?(?: shorts\/)?([a-zA-Z0-9_-]{11})(?:[?&].*)?$/i;
+          const match = trimmed.match(regex);
+          if (match && match[1]) {
+            return match[1];
+          }
+
+          // Extra fallback for embedded params or odd cases
+          try {
+            const u = new URL(trimmed.startsWith('http') ? trimmed : 'https://' + trimmed);
+            if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+              return u.searchParams.get('v') || (u.hostname === 'youtu.be' ? u.pathname.slice(1).split('?')[0] : '');
+            }
+          } catch {}
+
+          return '';
         }
         
         // Set Open Graph meta tags dynamically
@@ -437,9 +453,10 @@
                 let videoId = getYouTubeID(video.youtube_url);
                 
                 if (!videoId) {
-                    console.warn(`Skipping video with invalid URL: ${video.title || 'Untitled'}`);
-                    return;
+                    console.warn(`Skipping video "${video.title || 'Untitled'}" with invalid youtube_url: "${video.youtube_url}"`);
+                    return; // or continue;
                 }
+                console.log(`Extracted ID ${videoId} for "${video.title}"`);
                 
                 // Determine thumbnail URL
                 const customThumb = video.thumbnail_url && video.thumbnail_url.trim() !== '' ? video.thumbnail_url : '';
