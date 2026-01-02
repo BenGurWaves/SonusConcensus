@@ -1,628 +1,389 @@
+<!-- videos.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Videos | Sonus Concensus</title>
-    
-    <!-- PWA Tags -->
-    <meta name="theme-color" content="#0a0a0a">
-    <meta name="description" content="Cinematic video collection from Sonus Concensus">
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Google Fonts -->
+    <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-    
-    <!-- Supabase -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=Inter:wght@300;400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        /* Reset & Base */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; background: #000; color: #fff; font-family: 'Inter', sans-serif; font-weight: 300; overflow-x: hidden; }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: normal; }
         
-        :root {
-            --color-bg: #0a0a0a;
-            --color-surface: #111111;
-            --color-text: #e8e8e8;
-            --color-text-secondary: #a0a0a0;
-            --color-accent: #d4af37;
-            --color-accent-dark: #b8941f;
-            --color-overlay: rgba(0, 0, 0, 0.85);
-            --font-serif: 'Playfair Display', serif;
-            --font-sans: 'Inter', sans-serif;
-            --transition: all 0.3s ease;
-            --border-radius: 2px;
-            --max-width: 1400px;
+        /* Film Grain (subtle) */
+        .film-grain {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIwLjAyIi8+PC9zdmc+');
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 1;
+            animation: grain 8s steps(10) infinite;
         }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        body {
-            font-family: var(--font-sans);
-            font-weight: 300;
-            color: var(--color-text);
-            background-color: var(--color-bg);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            20% { transform: translate(1%, 2%); }
+            30% { transform: translate(-2%, -1%); }
+            40% { transform: translate(2%, 1%); }
+            50% { transform: translate(-1%, 2%); }
+            60% { transform: translate(1%, -1%); }
+            70% { transform: translate(-2%, 1%); }
+            80% { transform: translate(2%, -1%); }
+            90% { transform: translate(-1%, -2%); }
         }
         
         /* Header */
-        .header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background-color: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            padding: 1.25rem 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .header-content {
-            max-width: var(--max-width);
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-family: var(--font-serif);
-            font-size: 1.5rem;
-            font-weight: 500;
-            letter-spacing: 1px;
-            color: var(--color-text);
-            text-decoration: none;
-        }
-        
-        .nav {
-            display: flex;
-            gap: 2.5rem;
-        }
-        
-        .nav-link {
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            font-weight: 300;
-            letter-spacing: 0.5px;
-            transition: var(--transition);
-            position: relative;
-        }
-        
-        .nav-link:hover {
-            color: var(--color-accent);
-        }
-        
-        .nav-link.active {
-            color: var(--color-accent);
-        }
-        
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background-color: var(--color-accent);
-            transition: var(--transition);
-        }
-        
-        .nav-link:hover::after {
-            width: 100%;
-        }
-        
-        /* Main Content */
-        .main {
-            flex: 1;
-            margin-top: 5rem;
-            padding: 3rem 2rem;
-            max-width: var(--max-width);
-            width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .page-title {
-            font-family: var(--font-serif);
-            font-size: 2.5rem;
-            font-weight: 500;
-            margin-bottom: 3rem;
+        .page-header {
+            padding: clamp(100px, 15vw, 150px) 5% 50px;
             text-align: center;
-            letter-spacing: 1px;
+        }
+        .page-header h1 {
+            font-size: clamp(3rem, 10vw, 6rem);
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        .page-header p {
+            font-size: 1.2rem;
+            color: #ccc;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
         
-        /* Video Grid */
-        .video-grid {
+        /* Videos Grid */
+        .videos-container {
+            padding: 0 5% 100px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .videos-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 2rem;
         }
-        
-        @media (min-width: 768px) {
-            .video-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 2.5rem;
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            .video-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-        
         .video-card {
-            position: relative;
-            overflow: hidden;
-            background-color: var(--color-surface);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: var(--transition);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s ease forwards;
-        }
-        
-        @keyframes fadeUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .video-card:hover {
-            border-color: rgba(212, 175, 55, 0.3);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
-            transform: translateY(-4px);
-        }
-        
-        .thumbnail-container {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            overflow: hidden;
             cursor: pointer;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            position: relative;
         }
-        
-        .thumbnail {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: var(--transition);
+        .video-card:hover {
+            transform: translateY(-10px);
         }
-        
         .video-card:hover .thumbnail {
-            transform: scale(1.03);
+            box-shadow: 0 20px 40px rgba(181, 159, 59, 0.2);
         }
-        
-        .title-overlay {
+        .thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #111;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 1rem;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        .thumbnail::after {
+            content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-            padding: 1.5rem 1rem 1rem;
-            font-family: var(--font-serif);
-            font-size: 1.1rem;
-            font-weight: 500;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            transition: opacity 0.4s ease;
+        }
+        .video-card:hover .thumbnail::after {
+            opacity: 0.5;
+        }
+        .play-icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px; height: 60px;
+            background: rgba(181, 159, 59, 0.9);
+            border-radius: 50%;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .play-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 55%;
+            transform: translate(-50%, -50%);
+            border-left: 15px solid #000;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        .video-card:hover .play-icon {
+            opacity: 1;
+        }
+        .video-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            padding: 0 0.5rem;
             line-height: 1.3;
         }
-        
-        .video-info {
-            padding: 1.5rem;
-        }
-        
-        .video-description {
+        .video-card p {
+            color: #aaa;
             font-size: 0.9rem;
-            color: var(--color-text-secondary);
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
-        }
-        
-        .watch-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 0.75rem;
-            background-color: transparent;
-            border: 1px solid var(--color-accent);
-            color: var(--color-accent);
-            font-family: var(--font-sans);
-            font-weight: 300;
-            letter-spacing: 0.5px;
-            text-decoration: none;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        
-        .watch-button:hover {
-            background-color: rgba(212, 175, 55, 0.1);
-            letter-spacing: 1px;
+            padding: 0 0.5rem;
         }
         
         /* Modal */
-        .modal-overlay {
+        .modal {
+            display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--color-overlay);
-            display: flex;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 100;
             align-items: center;
             justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: var(--transition);
-            padding: 1rem;
+            padding: 5%;
         }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
         .modal-content {
-            position: relative;
             width: 100%;
-            max-width: 900px;
-            background-color: var(--color-surface);
-            border: 1px solid rgba(212, 175, 55, 0.2);
+            max-width: 1200px;
+            position: relative;
         }
-        
-        .modal-close {
+        .close-modal {
             position: absolute;
-            top: -2.5rem;
-            right: 0;
+            top: -50px; right: 0;
             background: none;
             border: none;
-            color: var(--color-text);
-            font-size: 1.5rem;
+            color: #fff;
+            font-size: 2rem;
             cursor: pointer;
-            padding: 0.5rem;
-            transition: var(--transition);
+            transition: color 0.3s ease;
         }
-        
-        .modal-close:hover {
-            color: var(--color-accent);
+        .close-modal:hover {
+            color: #b59f3b;
         }
-        
-        .video-container {
+        .video-wrapper {
             position: relative;
-            width: 100%;
-            padding-top: 56.25%;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: #000;
         }
-        
-        .video-iframe {
+        .video-wrapper iframe {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             border: none;
+        }
+        .modal-actions {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .modal-actions a {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            border: 1px solid #b59f3b;
+            color: #b59f3b;
+            text-decoration: none;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            transition: all 0.4s ease;
+        }
+        .modal-actions a:hover {
+            background: rgba(181, 159, 59, 0.1);
         }
         
         /* Empty State */
         .empty-state {
+            text-align: center;
+            padding: 100px 5%;
             grid-column: 1 / -1;
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--color-text-secondary);
-            font-family: var(--font-serif);
-            font-size: 1.2rem;
-            font-style: italic;
-            letter-spacing: 0.5px;
         }
-        
-        /* Footer */
-        .footer {
-            margin-top: auto;
-            padding: 3rem 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
+        .empty-state h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #b59f3b;
         }
-        
-        .footer-content {
-            max-width: var(--max-width);
+        .empty-state p {
+            color: #888;
+            max-width: 500px;
             margin: 0 auto;
         }
         
-        .footer-text {
-            color: var(--color-text-secondary);
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Loading */
-        .loading {
-            grid-column: 1 / -1;
+        /* Footer */
+        footer {
+            background: #111;
+            padding: 3rem 5%;
             text-align: center;
-            padding: 4rem;
-            color: var(--color-text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
         }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 2px solid rgba(212, 175, 55, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--color-accent);
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
+        .footer-links {
+            margin-bottom: 1.5rem;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .footer-links a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding-bottom: 2px;
+            position: relative;
         }
-        
-        /* Utility */
-        .sr-only {
+        .footer-links a::after {
+            content: '';
             position: absolute;
-            width: 1px;
+            bottom: 0; left: 0;
+            width: 0;
             height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
+            background: #b59f3b;
+            transition: width 0.4s ease;
         }
-        
-        /* Mobile Menu Toggle */
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--color-text);
-            font-size: 1.5rem;
-            cursor: pointer;
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+        .copyright {
+            color: #888;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
         }
         
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-            
-            .nav {
-                position: fixed;
-                top: 4.5rem;
-                left: 0;
-                right: 0;
-                background-color: var(--color-bg);
-                flex-direction: column;
-                padding: 2rem;
+            .videos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                 gap: 1.5rem;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                transform: translateY(-100%);
-                opacity: 0;
-                visibility: hidden;
-                transition: var(--transition);
             }
-            
-            .nav.active {
-                transform: translateY(0);
-                opacity: 1;
-                visibility: visible;
-            }
-            
-            .main {
-                padding: 1.5rem 1rem;
-                margin-top: 4.5rem;
-            }
-            
-            .page-title {
-                font-size: 2rem;
-                margin-bottom: 2rem;
-            }
-            
-            .video-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
+            .page-header {
+                padding: 80px 5% 30px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Film Grain Overlay -->
+    <div class="film-grain"></div>
+
     <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <a href="/" class="logo">Sonus Concensus</a>
-            
-            <button class="menu-toggle" aria-label="Toggle menu">☰</button>
-            
-            <nav class="nav">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/videos.html" class="nav-link active">Videos</a>
-                <a href="/music.html" class="nav-link">Music</a>
-            </nav>
-        </div>
+    <header class="page-header">
+        <h1>Video Collection</h1>
+        <p>Visual compositions in motion. Each piece is crafted as a sensory experience where imagery and sound find perfect alignment.</p>
     </header>
 
-    <!-- Main Content -->
-    <main class="main">
-        <h1 class="page-title">Cinematic Collection</h1>
-        
-        <div class="video-grid" id="videoGrid">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <p>Loading videos...</p>
-            </div>
+    <!-- Videos Grid -->
+    <div class="videos-container">
+        <div class="videos-grid" id="videosGrid">
+            <!-- Videos will be loaded here -->
         </div>
-    </main>
+    </div>
 
     <!-- Modal -->
-    <div class="modal-overlay" id="videoModal">
-        <button class="modal-close" aria-label="Close modal">×</button>
+    <div class="modal" id="videoModal">
         <div class="modal-content">
-            <div class="video-container">
-                <iframe class="video-iframe" id="videoPlayer" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <button class="close-modal" id="closeModal">×</button>
+            <div class="video-wrapper">
+                <iframe id="ytFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+            <div class="modal-actions">
+                <a id="ytLink" target="_blank">Watch on YouTube</a>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <p class="footer-text">© 2024 Sonus Concensus. All rights reserved.</p>
+    <footer>
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="videos.html">Videos</a>
+            <a href="music.html">Music</a>
         </div>
+        <div class="copyright">© Sonus Concensus 2026™</div>
     </footer>
 
     <script>
-        // Supabase Client
+        // Initialize Supabase
         const supabaseUrl = 'https://simlltekbhaljyuxpyrs.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpbWxsdGVrYmhhbGp5dXhweXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTE4OTgsImV4cCI6MjA3NzE2Nzg5OH0.QowZXsw9nHjtIC-U1q_lJyc47Mi07mNYG8Skitq3QTQ';
-        
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+        
         // DOM Elements
-        const videoGrid = document.getElementById('videoGrid');
+        const videosGrid = document.getElementById('videosGrid');
         const videoModal = document.getElementById('videoModal');
-        const videoPlayer = document.getElementById('videoPlayer');
-        const modalClose = document.querySelector('.modal-close');
-        const menuToggle = document.querySelector('.menu-toggle');
-        const nav = document.querySelector('.nav');
-
-        // Fetch and Display Videos
+        const closeModal = document.getElementById('closeModal');
+        const ytFrame = document.getElementById('ytFrame');
+        const ytLink = document.getElementById('ytLink');
+        
+        // Load videos
         async function loadVideos() {
-            try {
-                const { data: videos, error } = await supabase
-                    .from('sonus_videos')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                videoGrid.innerHTML = '';
-
-                if (!videos || videos.length === 0) {
-                    videoGrid.innerHTML = '<div class="empty-state">More coming soon</div>';
-                    return;
-                }
-
-                // Create video cards with staggered animation
-                videos.forEach((video, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'video-card';
-                    card.style.animationDelay = `${index * 0.1}s`;
-
-                    const description = video.description ? 
-                        `<p class="video-description">${video.description}</p>` : '';
-
-                    card.innerHTML = `
-                        <div class="thumbnail-container" data-video-id="${video.video_id}">
-                            <img 
-                                src="https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg" 
-                                alt="${video.title}" 
-                                class="thumbnail"
-                                loading="lazy"
-                            >
-                            <div class="title-overlay">${video.title}</div>
-                        </div>
-                        <div class="video-info">
-                            ${description}
-                            <a 
-                                href="https://www.youtube.com/watch?v=${video.video_id}" 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                class="watch-button"
-                            >
-                                Watch on YouTube
-                            </a>
-                        </div>
-                    `;
-
-                    videoGrid.appendChild(card);
-                });
-
-                // Add click event to thumbnails
-                document.querySelectorAll('.thumbnail-container').forEach(container => {
-                    container.addEventListener('click', () => {
-                        const videoId = container.dataset.videoId;
-                        openVideoModal(videoId);
-                    });
-                });
-
-            } catch (error) {
+            const { data, error } = await supabase
+                .from('sonus_videos')
+                .select('*')
+                .order('created_at', { ascending: false });
+                
+            if (error) {
                 console.error('Error loading videos:', error);
-                videoGrid.innerHTML = `
+                return;
+            }
+            
+            if (data.length === 0) {
+                videosGrid.innerHTML = `
                     <div class="empty-state">
-                        Error loading videos. Please try again later.
+                        <h3>More Coming Soon</h3>
+                        <p>Our visual library is currently being curated. New cinematic pieces will be available shortly.</p>
                     </div>
                 `;
+                return;
             }
+            
+            videosGrid.innerHTML = data.map(video => `
+                <div class="video-card" data-video-id="${video.video_id}" data-title="${video.title}" data-description="${video.description || ''}">
+                    <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg)">
+                        <div class="play-icon"></div>
+                    </div>
+                    <h3>${video.title}</h3>
+                    <p>${video.description || ''}</p>
+                </div>
+            `).join('');
+            
+            // Add click events
+            document.querySelectorAll('.video-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const videoId = card.dataset.videoId;
+                    const title = card.dataset.title;
+                    openModal(videoId, title);
+                });
+            });
         }
-
-        // Video Modal Functions
-        function openVideoModal(videoId) {
-            videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
-            videoModal.classList.add('active');
+        
+        // Modal functions
+        function openModal(videoId, title) {
+            ytFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+            ytLink.href = `https://youtube.com/watch?v=${videoId}`;
+            videoModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
-
-        function closeVideoModal() {
-            videoModal.classList.remove('active');
-            videoPlayer.src = '';
+        
+        function closeModalFunc() {
+            ytFrame.src = '';
+            videoModal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
-
-        // Event Listeners
-        modalClose.addEventListener('click', closeVideoModal);
+        
+        closeModal.addEventListener('click', closeModalFunc);
         videoModal.addEventListener('click', (e) => {
-            if (e.target === videoModal) closeVideoModal();
+            if (e.target === videoModal) closeModalFunc();
         });
-
-        // Mobile Menu Toggle
-        menuToggle.addEventListener('click', () => {
-            nav.classList.toggle('active');
-            menuToggle.textContent = nav.classList.contains('active') ? '✕' : '☰';
-        });
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!nav.contains(e.target) && !menuToggle.contains(e.target)) {
-                nav.classList.remove('active');
-                menuToggle.textContent = '☰';
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeVideoModal();
-            }
-        });
-
-        // Load videos on page load
-        document.addEventListener('DOMContentLoaded', loadVideos);
-
-        // PWA Service Worker Registration (simplified)
+        
+        // PWA Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
                     console.log('ServiceWorker registration failed: ', err);
                 });
             });
         }
+        
+        // Load videos on page load
+        document.addEventListener('DOMContentLoaded', loadVideos);
     </script>
 </body>
 </html>
