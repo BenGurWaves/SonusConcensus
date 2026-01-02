@@ -4,7 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Videos | Sonus Concensus</title>
+    <title>Video Collection | Sonus Concensus</title>
+    <meta property="og:title" content="Video Collection | Sonus Concensus">
+    <meta property="og:description" content="Visual compositions in motion. Each piece is crafted as a sensory experience where imagery and sound find perfect alignment.">
+    <meta property="og:url" content="https://sonusconcensus.com/videos.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Video Collection | Sonus Concensus">
+    <meta name="twitter:description" content="Visual compositions in motion. Each piece is crafted as a sensory experience where imagery and sound find perfect alignment.">
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,6 +144,12 @@
             font-size: 0.9rem;
             padding: 0 0.5rem;
         }
+        .views {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            padding: 0 0.5rem;
+        }
         
         /* Modal */
         .modal {
@@ -183,8 +196,12 @@
         .modal-actions {
             margin-top: 2rem;
             text-align: center;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
         }
-        .modal-actions a {
+        .modal-actions a,
+        .modal-actions button {
             display: inline-block;
             padding: 0.8rem 2rem;
             border: 1px solid #b59f3b;
@@ -193,8 +210,12 @@
             font-size: 1rem;
             letter-spacing: 0.1em;
             transition: all 0.4s ease;
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
         }
-        .modal-actions a:hover {
+        .modal-actions a:hover,
+        .modal-actions button:hover {
             background: rgba(181, 159, 59, 0.1);
         }
         
@@ -259,6 +280,15 @@
             .page-header {
                 padding: 80px 5% 30px;
             }
+            .modal-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            .modal-actions a,
+            .modal-actions button {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
@@ -274,9 +304,8 @@
 
     <!-- Videos Grid -->
     <div class="videos-container">
-        <!-- User: Paste full YouTube URL into 'youtube_url' column OR just the ID into 'video_id' -->
         <div class="videos-grid" id="videosGrid">
-            <!-- Videos will be loaded here -->
+            <div class="empty-state"><p>Loading collection...</p></div>
         </div>
     </div>
 
@@ -289,6 +318,7 @@
             </div>
             <div class="modal-actions">
                 <a id="ytLink" target="_blank">Watch on YouTube</a>
+                <button class="share-btn">Share</button>
             </div>
         </div>
     </div>
@@ -306,7 +336,6 @@
         // Initialize Supabase
         const supabaseUrl = 'https://simlltekbhaljyuxpyrs.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpbWxsdGVrYmhhbGp5dXhweXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTE4OTgsImV4cCI6MjA3NzE2Nzg5OH0.QowZXsw9nHjtIC-U1q_lJyc47Mi07mNYG8Skitq3QTQ';
-        // Supabase client (renamed to avoid global shadow error)
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         
         // DOM Elements
@@ -315,11 +344,63 @@
         const closeModal = document.getElementById('closeModal');
         const ytFrame = document.getElementById('ytFrame');
         const ytLink = document.getElementById('ytLink');
+        const shareBtn = document.querySelector('.share-btn');
+        
+        // Global variables for current video
+        let currentVideoId = '';
+        let currentVideoTitle = '';
+        
+        // YouTube ID extractor function
+        function getYouTubeID(url) {
+            if (!url) return '';
+            try {
+                const u = new URL(url.trim());
+                if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+                if (u.searchParams.has('v')) return u.searchParams.get('v');
+            } catch {}
+            // Fallback if just raw ID pasted
+            return url.trim();
+        }
+        
+        // Set Open Graph meta tags dynamically
+        function setOpenGraph({ title, description, imageUrl, videoId }) {
+            // Update page title
+            document.title = `${title} | Sonus Concensus`;
+            
+            // Create or update meta tags
+            const metaTags = {
+                'og:title': `${title} | Sonus Concensus`,
+                'og:description': description || 'Cinematic instrumental from Sonus Concensus',
+                'og:image': imageUrl,
+                'og:url': window.location.href,
+                'og:type': 'video.other',
+                'og:video': `https://www.youtube.com/v/${videoId}`,
+                'twitter:card': 'summary_large_image',
+                'twitter:title': `${title} | Sonus Concensus`,
+                'twitter:description': description || 'Cinematic instrumental from Sonus Concensus',
+                'twitter:image': imageUrl
+            };
+            
+            Object.keys(metaTags).forEach(property => {
+                let selector = property.startsWith('twitter:') ? `meta[name="${property}"]` : `meta[property="${property}"]`;
+                let meta = document.querySelector(selector);
+                
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    if (property.startsWith('twitter:')) {
+                        meta.setAttribute('name', property);
+                    } else {
+                        meta.setAttribute('property', property);
+                    }
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', metaTags[property]);
+            });
+        }
         
         // Load videos
         async function loadVideos() {
             console.log('Fetching videos...');
-            videosGrid.innerHTML = '<div class="empty-state"><p>Loading collection...</p></div>';
             
             const { data: videos, error } = await supabaseClient
                 .from('sonus_videos')
@@ -352,17 +433,19 @@
             videosGrid.innerHTML = '';
             
             videos.forEach(video => {
-                // Extract video ID
-                let videoId = '';
-                if (video.youtube_url) {
-                    try {
-                        videoId = new URL(video.youtube_url).searchParams.get('v');
-                    } catch (e) {
-                        videoId = video.youtube_url;
-                    }
-                } else {
-                    videoId = video.video_id;
+                // Extract video ID from YouTube URL
+                let videoId = getYouTubeID(video.youtube_url);
+                
+                if (!videoId) {
+                    console.warn(`Skipping video with invalid URL: ${video.title || 'Untitled'}`);
+                    return;
                 }
+                
+                // Determine thumbnail URL
+                const customThumb = video.thumbnail_url && video.thumbnail_url.trim() !== '' ? video.thumbnail_url : '';
+                const ytMaxRes = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                const ytHq = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                const thumbUrl = customThumb || ytMaxRes;
                 
                 // Create card
                 const card = document.createElement('div');
@@ -370,6 +453,8 @@
                 card.dataset.videoId = videoId;
                 card.dataset.title = video.title;
                 card.dataset.description = video.description || '';
+                card.dataset.thumb = thumbUrl;
+                card.dataset.rowId = video.id;
                 
                 card.innerHTML = `
                     <div class="thumbnail">
@@ -377,44 +462,110 @@
                     </div>
                     <h3>${video.title}</h3>
                     <p>${video.description || ''}</p>
+                    <p class="views">${video.view_count > 0 ? `${video.view_count} views` : ''}</p>
                 `;
                 
-                // Thumbnail reliability with fallback
+                // Thumbnail loading with fallback
                 const thumb = card.querySelector('.thumbnail');
-                const maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-                const hqUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
                 
-                thumb.style.backgroundImage = `url(${maxResUrl})`;
+                // Set initial background
+                thumb.style.backgroundImage = `url(${thumbUrl})`;
                 
-                const imgTest = new Image();
-                imgTest.src = maxResUrl;
-                imgTest.onload = () => {
-                    thumb.style.backgroundImage = `url(${imgTest.src})`;
-                };
-                imgTest.onerror = () => {
-                    thumb.style.backgroundImage = `url(${hqUrl})`;
-                };
+                // If using YouTube thumbnail, test maxres -> fallback to hq
+                if (!customThumb) {
+                    const imgTest = new Image();
+                    imgTest.src = ytMaxRes;
+                    imgTest.onload = () => {
+                        // Keep maxres
+                    };
+                    imgTest.onerror = () => {
+                        thumb.style.backgroundImage = `url(${ytHq})`;
+                        card.dataset.thumb = ytHq;
+                    };
+                }
                 
                 card.addEventListener('click', () => {
-                    openModal(videoId, video.title);
+                    openModal(videoId, video.title, video.description || '', thumbUrl);
                 });
                 
                 videosGrid.appendChild(card);
             });
+            
+            // Check for video parameter in URL
+            const params = new URLSearchParams(window.location.search);
+            const openId = params.get('v');
+            
+            if (openId) {
+                const matchingCard = Array.from(document.querySelectorAll('.video-card'))
+                    .find(card => card.dataset.videoId === openId);
+                
+                if (matchingCard) {
+                    const title = matchingCard.dataset.title;
+                    const description = matchingCard.dataset.description;
+                    const thumb = matchingCard.dataset.thumb;
+                    
+                    // Update OG meta for this specific video
+                    setOpenGraph({
+                        title,
+                        description,
+                        imageUrl: thumb,
+                        videoId: openId
+                    });
+                    
+                    // Open modal after a brief delay to ensure rendering
+                    setTimeout(() => {
+                        openModal(openId, title, description, thumb);
+                    }, 100);
+                }
+            }
         }
         
         // Modal functions
-        function openModal(videoId, title) {
+        function openModal(videoId, title, description = '', imageUrl = '') {
+            currentVideoId = videoId;
+            currentVideoTitle = title;
+            
             ytFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
             ytLink.href = `https://youtube.com/watch?v=${videoId}`;
             videoModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            
+            // Update share button event listener
+            shareBtn.onclick = handleShare;
         }
         
         function closeModalFunc() {
             ytFrame.src = '';
             videoModal.style.display = 'none';
             document.body.style.overflow = 'auto';
+            currentVideoId = '';
+            currentVideoTitle = '';
+        }
+        
+        // Share functionality
+        function handleShare() {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?v=${currentVideoId}`;
+            const youtubeUrl = `https://www.youtube.com/watch?v=${currentVideoId}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: currentVideoTitle,
+                    text: 'Watch this cinematic piece on Sonus Concensus',
+                    url: shareUrl
+                }).catch(err => {
+                    console.log('Share cancelled:', err);
+                });
+            } else {
+                // Fallback: copy YouTube link to clipboard
+                navigator.clipboard.writeText(youtubeUrl)
+                    .then(() => {
+                        alert('YouTube link copied to clipboard');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy:', err);
+                        alert('Failed to copy link');
+                    });
+            }
         }
         
         closeModal.addEventListener('click', closeModalFunc);
